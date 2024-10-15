@@ -1,3 +1,13 @@
 streamlit
 openai
+plotly.express
+pillow
+pandas
+numpy
 plotly
+nltk
+matplotlib
+seaborn
+wordcloud
+CleanText
+scikit-learn
