@@ -1,8 +1,12 @@
 import streamlit as st
 from openai import OpenAI
+import pandas as pd
+import numpy as np
+
+
 
 # Show title and description.
-st.title("💬 Chatbot")
+st.title("💬 Chatbot with CSV Upload and Visualization")
 st.write(
     "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate responses. "
     "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
@@ -54,3 +58,11 @@ else:
         with st.chat_message("assistant"):
             response = st.write_stream(stream)
         st.session_state.messages.append({"role": "assistant", "content": response})
+
+
+df = st.file_uploader(label = 'Upload your dataset')
+
+if df:
+    df = pd.read_csv(df)
+
+    st.write(df.head())
