@@ -5,10 +5,10 @@ import numpy as np
 import plotly.express as px
 
 # Show title and description.
-st.title("💬 GPT-Generated Code for CSV Visualization")
+st.title("💬 GPT-Generated Code from User Prompt for CSV Visualization")
 st.write(
-    "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate Python code for visualizing uploaded CSV data. "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys)."
+    "This app allows you to upload a CSV, write a custom prompt, and have GPT-3.5 generate Python code for plotting. "
+    "You can also execute the generated code directly to visualize the data."
 )
 
 # Ask user for their OpenAI API key via `st.text_input`.
@@ -19,7 +19,7 @@ else:
     # Create an OpenAI client.
     client = OpenAI(api_key=openai_api_key)
 
-    # Upload the file
+    # Upload the CSV file
     uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
     if uploaded_file is not None:
         # Read CSV
@@ -30,49 +30,44 @@ else:
         # Store the DataFrame in the session state for later use
         st.session_state["csv_data"] = df
 
-        # Visualization Section
-        st.subheader("Select Columns and Plot Type")
+        # Allow the user to input a custom prompt
+        user_prompt = st.text_area("Write your prompt for GPT to generate code for visualization", height=100)
 
-        # Check if the CSV has numerical columns for graphing
-        numeric_columns = df.select_dtypes(include=np.number).columns.tolist()
-        if len(numeric_columns) > 1:
-            # Allow user to select columns for X and Y axes
-            x_axis = st.selectbox("Select X-axis", options=numeric_columns)
-            y_axis = st.selectbox("Select Y-axis", options=numeric_columns)
+        # If the user has entered a prompt
+        if user_prompt:
+            # Add CSV preview in the prompt context
+            csv_context = f"Here is a preview of the DataFrame `df`:\n{df.head().to_string()}\n"
+            full_prompt = f"{csv_context}\nUser prompt: {user_prompt}"
 
-            # Allow user to select plot type
-            plot_type = st.selectbox(
-                "Choose the type of plot", options=["Line", "Bar", "Scatter"]
-            )
-
-            # Create prompt to send to GPT for code generation
-            prompt = f"""
-            Write Python code using Plotly Express to plot a {plot_type.lower()} plot with '{x_axis}' on the X-axis and '{y_axis}' on the Y-axis from the following pandas DataFrame (called `df`):
-            {df.head().to_string()}
-            """
-            st.write(f"GPT prompt: {prompt}")
+            # Display the final prompt being sent to GPT
+            st.write(f"GPT Prompt: {full_prompt}")
 
             # Generate a response using the OpenAI API
             response = client.completions.create(
                 model="gpt-3.5-turbo",
-                prompt=prompt,
+                prompt=full_prompt,
                 max_tokens=150,
                 n=1,
                 stop=None,
                 temperature=0.5,
             )
-            
-            # Display the GPT-generated code
+
+            # Get the generated code from the response
             generated_code = response['choices'][0]['text']
+            st.subheader("Generated Code:")
             st.code(generated_code, language="python")
 
-            # Execute the generated code
-            exec(generated_code)
+            # Provide a button to execute the code
+            if st.button("Run the generated code"):
+                try:
+                    # Execute the generated code
+                    exec(generated_code)
+                except Exception as e:
+                    st.error(f"Error executing the code: {e}")
+    else:
+        st.write("Please upload a CSV file to proceed.")
 
-        else:
-            st.write("Not enough numerical columns for visualization.")
-
-    # Create a session state variable to store chat messages
+    # Chatbot functionality
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
@@ -82,18 +77,11 @@ else:
             st.markdown(message["content"])
 
     # Create a chat input field for the user to enter a message
-    if prompt := st.chat_input("Ask about your data or anything else..."):
+    if chat_prompt := st.chat_input("Ask anything..."):
         # Store and display the user's message
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        st.session_state.messages.append({"role": "user", "content": chat_prompt})
         with st.chat_message("user"):
-            st.markdown(prompt)
-
-        # If CSV data is uploaded, use it as part of the prompt
-        if "csv_data" in st.session_state:
-            csv_context = f"Here's a preview of the CSV data:\n{st.session_state['csv_data'].head().to_dict()}\n"
-            prompt_with_data = f"{csv_context}\nUser question: {prompt}"
-        else:
-            prompt_with_data = prompt
+            st.markdown(chat_prompt)
 
         # Generate a response using the OpenAI API
         stream = client.chat.completions.create(
@@ -101,7 +89,7 @@ else:
             messages=[
                 {"role": m["role"], "content": m["content"]}
                 for m in st.session_state.messages
-            ] + [{"role": "user", "content": prompt_with_data}],
+            ] + [{"role": "user", "content": chat_prompt}],
             stream=True,
         )
 
