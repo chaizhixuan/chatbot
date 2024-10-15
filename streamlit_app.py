@@ -5,9 +5,9 @@ import numpy as np
 import plotly.express as px
 
 # Show title and description.
-st.title("💬 Chatbot with CSV Upload, Visualization, and GPT Integration")
+st.title("💬 GPT-Generated Code for CSV Visualization")
 st.write(
-    "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate responses and allows you to visualize CSV data. "
+    "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate Python code for visualizing uploaded CSV data. "
     "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys)."
 )
 
@@ -31,8 +31,8 @@ else:
         st.session_state["csv_data"] = df
 
         # Visualization Section
-        st.subheader("Visualize the Data")
-        
+        st.subheader("Select Columns and Plot Type")
+
         # Check if the CSV has numerical columns for graphing
         numeric_columns = df.select_dtypes(include=np.number).columns.tolist()
         if len(numeric_columns) > 1:
@@ -40,13 +40,38 @@ else:
             x_axis = st.selectbox("Select X-axis", options=numeric_columns)
             y_axis = st.selectbox("Select Y-axis", options=numeric_columns)
 
-            # Plot the graph using Plotly
-            fig = px.line(df, x=x_axis, y=y_axis, title=f"{x_axis} vs {y_axis}")
-            st.plotly_chart(fig)
+            # Allow user to select plot type
+            plot_type = st.selectbox(
+                "Choose the type of plot", options=["Line", "Bar", "Scatter"]
+            )
+
+            # Create prompt to send to GPT for code generation
+            prompt = f"""
+            Write Python code using Plotly Express to plot a {plot_type.lower()} plot with '{x_axis}' on the X-axis and '{y_axis}' on the Y-axis from the following pandas DataFrame (called `df`):
+            {df.head().to_string()}
+            """
+            st.write(f"GPT prompt: {prompt}")
+
+            # Generate a response using the OpenAI API
+            response = client.completions.create(
+                model="gpt-3.5-turbo",
+                prompt=prompt,
+                max_tokens=150,
+                n=1,
+                stop=None,
+                temperature=0.5,
+            )
+            
+            # Display the GPT-generated code
+            generated_code = response['choices'][0]['text']
+            st.code(generated_code, language="python")
+
+            # Execute the generated code
+            exec(generated_code)
 
         else:
             st.write("Not enough numerical columns for visualization.")
-    
+
     # Create a session state variable to store chat messages
     if "messages" not in st.session_state:
         st.session_state.messages = []
