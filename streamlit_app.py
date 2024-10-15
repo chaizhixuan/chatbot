@@ -1,14 +1,13 @@
 import streamlit as st
 from openai import OpenAI
 import pandas as pd
-import numpy as np
 import plotly.express as px
 
 # Show title and description.
-st.title("💬 GPT-Generated Code from User Prompt for CSV Visualization")
+st.title("💬 GPT-Generated Code for CSV Visualization")
 st.write(
     "This app allows you to upload a CSV, write a custom prompt, and have GPT-3.5 generate Python code for plotting. "
-    "You can also execute the generated code directly to visualize the data."
+    "You can execute the generated code directly to visualize the data."
 )
 
 # Ask user for their OpenAI API key via `st.text_input`.
@@ -30,22 +29,21 @@ else:
         # Store the DataFrame in the session state for later use
         st.session_state["csv_data"] = df
 
-        # Allow the user to input a custom prompt
-        user_prompt = st.text_area("Write your prompt for GPT to generate code for visualization", height=100)
+        # Allow the user to input a custom prompt for GPT
+        user_prompt = st.text_area(
+            "Write your prompt for GPT to generate code for visualization (e.g., 'Write Python code to plot a bar chart using column1 and column2.')",
+            height=100
+        )
 
         # If the user has entered a prompt
         if user_prompt:
-            # Add CSV preview in the prompt context
-            csv_context = f"Here is a preview of the DataFrame `df`:\n{df.head().to_string()}\n"
-            full_prompt = f"{csv_context}\nUser prompt: {user_prompt}"
-
-            # Display the final prompt being sent to GPT
-            st.write(f"GPT Prompt: {full_prompt}")
+            # Display the prompt being sent to GPT
+            st.write(f"User Prompt: {user_prompt}")
 
             # Generate a response using the OpenAI API
             response = client.completions.create(
                 model="gpt-3.5-turbo",
-                prompt=full_prompt,
+                prompt=user_prompt,
                 max_tokens=150,
                 n=1,
                 stop=None,
