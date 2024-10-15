@@ -18,11 +18,15 @@ else:
     # Create an OpenAI client.
     client = OpenAI(api_key=openai_api_key)
 
-    # Upload the CSV file
+    # Upload the CSV file with encoding handling
     uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
     if uploaded_file is not None:
-        # Read CSV
-        df = pd.read_csv(uploaded_file)
+        # Try reading CSV with UTF-8 encoding, and fallback to 'latin1' if necessary
+        try:
+            df = pd.read_csv(uploaded_file, encoding="utf-8")
+        except UnicodeDecodeError:
+            df = pd.read_csv(uploaded_file, encoding="latin1")
+
         st.write("CSV File loaded:")
         st.write(df.head())  # Display the first few rows of the file
 
@@ -58,7 +62,7 @@ else:
             # Provide a button to execute the code
             if st.button("Run the generated code"):
                 try:
-                    # Execute the generated code
+                    # Execute the generated code safely
                     exec(generated_code)
                 except Exception as e:
                     st.error(f"Error executing the code: {e}")
