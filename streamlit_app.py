@@ -45,9 +45,12 @@ else:
             st.write(f"User Prompt: {user_prompt}")
 
             # Generate a response using the OpenAI API
-            response = client.completions.create(
-                model="gpt-3.5-turbo",
-                prompt=user_prompt,
+            response = client.chat.completions.create(  # Corrected method for GPT-3.5-turbo and GPT-4
+                model="gpt-3.5-turbo",  # Use GPT-3.5-turbo or GPT-4 depending on your need
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": user_prompt},
+                ],
                 max_tokens=150,
                 n=1,
                 stop=None,
@@ -55,7 +58,7 @@ else:
             )
 
             # Get the generated code from the response
-            generated_code = response['choices'][0]['text']
+            generated_code = response['choices'][0]['message']['content']
             st.subheader("Generated Code:")
             st.code(generated_code, language="python")
 
