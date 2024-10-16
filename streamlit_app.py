@@ -69,14 +69,7 @@ else:
 
         st.session_state.messages.append({"role": "assistant", "content": response_text})
 
-        # Check if the response contains code to generate a plot
-        try:
-            response_data = json.loads(response_text)
-            if 'code' in response_data and response_data['code']:
-                st.code(response_data['code'])
-                exec(response_data['code'])
-        except Exception as e:
-            st.error(f"Failed to parse response: {e}")
+        
 
         # If no code generated, simply show the response as text
         if isinstance(response_text, str):
