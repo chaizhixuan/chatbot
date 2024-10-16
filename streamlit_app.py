@@ -6,7 +6,7 @@ import plotly.express as px
 # Show title and description.
 st.title("💬 GPT-Generated Code for CSV Visualization")
 st.write(
-    "This app allows you to upload a CSV, write a custom prompt, and have GPT-3.5 generate Python code for plotting. "
+    "This app allows you to upload a CSV, write a custom prompt, and have GPT-4 generate Python code for plotting. "
     "You can execute the generated code directly to visualize the data."
 )
 
@@ -45,28 +45,23 @@ else:
             st.write(f"User Prompt: {user_prompt}")
 
             try:
-                # Generate a response using the OpenAI API
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
+                # Generate a response using the OpenAI API (Updated for openai>=1.0.0)
+                response = openai.Chat.create(
+                    model="gpt-4",  # Use GPT-3.5-turbo or GPT-4
                     messages=[
                         {"role": "system", "content": "You are a helpful assistant."},
                         {"role": "user", "content": user_prompt},
                     ],
                     max_tokens=150,
-                    n=1,
-                    stop=None,
                     temperature=0.5,
                 )
 
-                # Ensure response has expected structure and handle both cases
+                # Ensure response has expected structure
                 if response and 'choices' in response and len(response['choices']) > 0:
-                    # Try to get the content from the expected 'message' structure
-                    generated_code = response['choices'][0].get('message', {}).get('content', None)
-                    if generated_code:
-                        st.subheader("Generated Code:")
-                        st.code(generated_code, language="python")
-                    else:
-                        st.error("The response from GPT-3.5 did not contain any code.")
+                    # Get the generated code content from the response
+                    generated_code = response['choices'][0]['message']['content']
+                    st.subheader("Generated Code:")
+                    st.code(generated_code, language="python")
                 else:
                     st.error("Failed to get a valid response from OpenAI.")
 
@@ -100,9 +95,9 @@ else:
             st.markdown(chat_prompt)
 
         try:
-            # Generate a response using the OpenAI API
-            stream = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
+            # Generate a response using the OpenAI API (Updated for openai>=1.0.0)
+            stream = openai.Chat.create(
+                model="gpt-4",
                 messages=[
                     {"role": m["role"], "content": m["content"]}
                     for m in st.session_state.messages
