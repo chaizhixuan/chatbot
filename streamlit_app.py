@@ -45,8 +45,8 @@ else:
             st.write(f"User Prompt: {user_prompt}")
 
             try:
-                # Generate a response using the OpenAI API (Updated for openai>=1.0.0)
-                response = openai.Chat.create(
+                # Generate a response using the OpenAI API (Correct method for openai>=1.0.0)
+                response = openai.ChatCompletion.create(
                     model="gpt-4",  # Use GPT-3.5-turbo or GPT-4
                     messages=[
                         {"role": "system", "content": "You are a helpful assistant."},
@@ -95,8 +95,8 @@ else:
             st.markdown(chat_prompt)
 
         try:
-            # Generate a response using the OpenAI API (Updated for openai>=1.0.0)
-            stream = openai.Chat.create(
+            # Generate a response using the OpenAI API (Correct method for openai>=1.0.0)
+            response = openai.ChatCompletion.create(
                 model="gpt-4",
                 messages=[
                     {"role": m["role"], "content": m["content"]}
