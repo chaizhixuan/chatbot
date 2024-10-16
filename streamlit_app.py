@@ -101,20 +101,23 @@ def plot_user_selection(df):
         # Allow the user to select color for the plot
         plot_color = st.color_picker('Pick a color for the plot', '#00f900')
 
-        # Set axis range limits using sliders based on data range, but starting from 0
+        # Calculate max values with some padding for better visualization
+        x_max = float(df[x_axis].max()) * 1.1  # Adding 10% padding
+        y_max = float(df[y_axis].max()) * 1.1  # Adding 10% padding
+
+        # Set axis range limits using sliders based on data range, starting from 0
         x_range = st.slider(
             f"Select range for {x_axis} (X-axis)", 
             min_value=0.0,  # Starting from 0
-            max_value=float(df[x_axis].max()), 
-            value=(0.0, float(df[x_axis].max()))  # Default value starts at 0
+            max_value=x_max, 
+            value=(0.0, x_max)  # Default value starts at 0
         )
         y_range = st.slider(
             f"Select range for {y_axis} (Y-axis)", 
             min_value=0.0,  # Starting from 0
-            max_value=float(df[y_axis].max()), 
-            value=(0.0, float(df[y_axis].max()))  # Default value starts at 0
+            max_value=y_max, 
+            value=(0.0, y_max)  # Default value starts at 0
         )
-
         # Generate the plot based on the user's selections
         if x_axis and y_axis and plot_type:
             if plot_type == 'Line Plot':
