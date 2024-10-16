@@ -7,9 +7,5 @@ numpy
 plotly
 nltk
 matplotlib
-seaborn
-wordcloud
 CleanText
 scikit-learn
-io
-matplotlib.pyplot
