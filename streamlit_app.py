@@ -1,14 +1,13 @@
 import streamlit as st
 from openai import OpenAI
 import pandas as pd
-import numpy as np
 import plotly.express as px
 import json
 
 # Show title and description.
-st.title("💬 Chatbot with CSV Upload and Visualization")
+st.title("💬 Chatbot with CSV Upload and Dynamic Visualization")
 st.write(
-    "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate responses. "
+    "This chatbot can generate responses and visualizations based on the data you upload. "
     "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys)."
 )
 
@@ -29,7 +28,7 @@ else:
         st.write(df.head())  # Display the first few rows of the file
 
         # Store the DataFrame in the session state for later use
-        st.session_state["csv_data"] = df.to_dict()
+        st.session_state["csv_data"] = df
 
     # Create a session state variable to store chat messages
     if "messages" not in st.session_state:
@@ -41,7 +40,7 @@ else:
             st.markdown(message["content"])
 
     # Create a chat input field for the user to enter a message
-    if prompt := st.chat_input("Ask about your data or anything else..."):
+    if prompt := st.chat_input("Ask about your data or request a plot (e.g., 'plot satisfaction vs time spent')..."):
         # Store and display the user's message
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
@@ -49,7 +48,8 @@ else:
 
         # If CSV data is uploaded, use it as part of the prompt
         if "csv_data" in st.session_state:
-            csv_context = f"Here's the CSV data:\n{st.session_state['csv_data']}\n"
+            df = st.session_state['csv_data']
+            csv_context = f"Here's a preview of the CSV data:\n{df.head().to_dict()}\n"
             prompt_with_data = f"{csv_context}\nUser question: {prompt}"
         else:
             prompt_with_data = prompt
@@ -70,7 +70,7 @@ else:
 
         st.session_state.messages.append({"role": "assistant", "content": response_text})
 
-        # Check if the response contains code to generate a plot
+        # Parse the response for code to generate plots
         try:
             response_data = json.loads(response_text)
             if 'code' in response_data and response_data['code']:
@@ -83,13 +83,28 @@ else:
         if isinstance(response_text, str):
             st.session_state.messages.append({"role": "assistant", "content": response_text})
 
-# Example data visualization function that could be generated from AI response
-def plot_example(df):
-    if 'time_spend_company' in df.columns and 'satisfaction_level' in df.columns:
-        fig = px.line(df, x='time_spend_company', y='satisfaction_level', title='Satisfaction vs Time Spent in Company')
+# Example data visualization function that generates dynamic plots based on user input
+def plot_dynamic(df, x_col, y_col):
+    if x_col in df.columns and y_col in df.columns:
+        fig = px.line(df, x=x_col, y=y_col, title=f'{y_col} vs {x_col}')
         st.plotly_chart(fig)
+    else:
+        st.error(f"Columns '{x_col}' or '{y_col}' not found in the data.")
 
-# Call this visualization function if the appropriate columns exist in the uploaded CSV
+# Example to check user input and dynamically generate plot based on it
 if 'csv_data' in st.session_state:
-    df = pd.DataFrame(st.session_state['csv_data'])
-    plot_example(df)
+    df = st.session_state['csv_data']
+
+    # Example: Extract columns based on user request
+    user_input = prompt.lower()
+    if "plot" in user_input and "vs" in user_input:
+        try:
+            # Extract x and y columns from prompt (e.g., 'plot satisfaction vs time spent')
+            x_col, y_col = user_input.split("plot")[1].strip().split("vs")
+            x_col = x_col.strip()
+            y_col = y_col.strip()
+
+            plot_dynamic(df, x_col, y_col)
+
+        except Exception as e:
+            st.error(f"Error generating plot: {e}")
