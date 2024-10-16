@@ -11,3 +11,4 @@ seaborn
 wordcloud
 CleanText
 scikit-learn
+io
