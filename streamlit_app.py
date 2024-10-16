@@ -1,5 +1,5 @@
 import streamlit as st
-from openai import OpenAI
+import openai
 import pandas as pd
 import plotly.express as px
 
@@ -15,13 +15,13 @@ openai_api_key = st.text_input("OpenAI API Key", type="password")
 if not openai_api_key:
     st.info("Please add your OpenAI API key to continue.", icon="🗝️")
 else:
-    # Create an OpenAI client.
-    client = OpenAI(api_key=openai_api_key)
+    # Set the OpenAI API key
+    openai.api_key = openai_api_key
 
-    # Upload the CSV file with encoding handling
+    # Upload the CSV file
     uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
     if uploaded_file is not None:
-        # Try reading CSV with UTF-8 encoding, and fallback to 'latin1' if necessary
+        # Try reading CSV with UTF-8 encoding, fallback to 'latin1' if necessary
         try:
             df = pd.read_csv(uploaded_file, encoding="utf-8")
         except UnicodeDecodeError:
@@ -44,23 +44,34 @@ else:
             # Display the prompt being sent to GPT
             st.write(f"User Prompt: {user_prompt}")
 
-            # Generate a response using the OpenAI API
-            response = client.chat.completions.create(  # Corrected method for GPT-3.5-turbo and GPT-4
-                model="gpt-3.5-turbo",  # Use GPT-3.5-turbo or GPT-4 depending on your need
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": user_prompt},
-                ],
-                max_tokens=150,
-                n=1,
-                stop=None,
-                temperature=0.5,
-            )
+            try:
+                # Generate a response using the OpenAI API
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    max_tokens=150,
+                    n=1,
+                    stop=None,
+                    temperature=0.5,
+                )
 
-            # Get the generated code from the response
-            generated_code = response['choices'][0]['message']['content']
-            st.subheader("Generated Code:")
-            st.code(generated_code, language="python")
+                # Ensure response has expected structure and handle both cases
+                if response and 'choices' in response and len(response['choices']) > 0:
+                    # Try to get the content from the expected 'message' structure
+                    generated_code = response['choices'][0].get('message', {}).get('content', None)
+                    if generated_code:
+                        st.subheader("Generated Code:")
+                        st.code(generated_code, language="python")
+                    else:
+                        st.error("The response from GPT-3.5 did not contain any code.")
+                else:
+                    st.error("Failed to get a valid response from OpenAI.")
+
+            except Exception as e:
+                st.error(f"Error while generating response: {e}")
 
             # Provide a button to execute the code
             if st.button("Run the generated code"):
@@ -88,17 +99,21 @@ else:
         with st.chat_message("user"):
             st.markdown(chat_prompt)
 
-        # Generate a response using the OpenAI API
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ] + [{"role": "user", "content": chat_prompt}],
-            stream=True,
-        )
+        try:
+            # Generate a response using the OpenAI API
+            stream = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": m["role"], "content": m["content"]}
+                    for m in st.session_state.messages
+                ] + [{"role": "user", "content": chat_prompt}],
+                stream=True,
+            )
 
-        # Stream the response and store it in session state
-        with st.chat_message("assistant"):
-            response = st.write_stream(stream)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+            # Stream the response and store it in session state
+            with st.chat_message("assistant"):
+                response = st.write_stream(stream)
+            st.session_state.messages.append({"role": "assistant", "content": response})
+
+        except Exception as e:
+            st.error(f"Error while generating chat response: {e}")
