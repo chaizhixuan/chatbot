@@ -109,6 +109,13 @@ def plot_user_selection(df):
             elif plot_type == 'Histogram':
                 fig = px.histogram(df, x=x_axis, title=f'Histogram of {x_axis}')
             
-            st.plotly_chart(fig)
+            # Ensure the figure renders correctly
+            if fig:
+                st.plotly_chart(fig)
+            else:
+                st.write("Unable to generate the plot.")
 
-# Call this visualization function if the appropriate columns exist in the
+# Call this visualization function if the appropriate columns exist in the uploaded CSV
+if 'csv_data' in st.session_state:
+    df = pd.DataFrame(st.session_state['csv_data'])
+    plot_user_selection(df)
