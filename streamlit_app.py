@@ -70,11 +70,6 @@ else:
         st.session_state.messages.append({"role": "assistant", "content": response_text})
 
 
-
-        # If no code generated, simply show the response as text
-        if isinstance(response_text, str):
-            st.session_state.messages.append({"role": "assistant", "content": response_text})
-
 # Function to allow the user to select a plot type, axis ranges, and color
 def plot_user_selection(df):
     # Ensure that the DataFrame has columns
