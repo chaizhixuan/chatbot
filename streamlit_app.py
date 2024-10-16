@@ -2,14 +2,13 @@ import streamlit as st
 from openai import OpenAI
 import pandas as pd
 import numpy as np
-import plotly.express as px
-import json
 
 # Show title and description.
 st.title("💬 Chatbot with CSV Upload and Visualization")
 st.write(
     "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate responses. "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys)."
+    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
+    "You can also learn how to build this app step by step by [following our tutorial](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps)."
 )
 
 # Ask user for their OpenAI API key via `st.text_input`.
@@ -66,30 +65,5 @@ else:
 
         # Stream the response and store it in session state
         with st.chat_message("assistant"):
-            response_text = st.write_stream(stream)
-
-        st.session_state.messages.append({"role": "assistant", "content": response_text})
-
-        # Check if the response contains code to generate a plot
-        try:
-            response_data = json.loads(response_text)
-            if 'code' in response_data and response_data['code']:
-                st.code(response_data['code'])
-                exec(response_data['code'])
-        except Exception as e:
-            st.error(f"Failed to parse response: {e}")
-
-        # If no code generated, simply show the response as text
-        if isinstance(response_text, str):
-            st.session_state.messages.append({"role": "assistant", "content": response_text})
-
-# Example data visualization function that could be generated from AI response
-def plot_example(df):
-    if 'time_spend_company' in df.columns and 'satisfaction_level' in df.columns:
-        fig = px.line(df, x='time_spend_company', y='satisfaction_level', title='Satisfaction vs Time Spent in Company')
-        st.plotly_chart(fig)
-
-# Call this visualization function if the appropriate columns exist in the uploaded CSV
-if 'csv_data' in st.session_state:
-    df = pd.DataFrame(st.session_state['csv_data'])
-    plot_example(df)
+            response = st.write_stream(stream)
+        st.session_state.messages.append({"role": "assistant", "content": response})
