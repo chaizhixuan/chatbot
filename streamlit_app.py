@@ -82,22 +82,33 @@ else:
         if isinstance(response_text, str):
             st.session_state.messages.append({"role": "assistant", "content": response_text})
 
-# Example data visualization function that allows the user to select x and y columns
+# Function to allow the user to select a plot type and columns
 def plot_user_selection(df):
     # Ensure that the DataFrame has columns
     if df is not None and not df.empty:
-        st.write("### Select Columns for Plotting:")
+        st.write("### Select Plot Type and Columns for Plotting:")
         
         # Allow the user to select the x and y axis from available columns
         x_axis = st.selectbox('Choose column for X-axis', options=df.columns)
         y_axis = st.selectbox('Choose column for Y-axis', options=df.columns)
         
+        # Allow the user to select the type of plot
+        plot_type = st.selectbox(
+            'Choose Plot Type', 
+            ['Line Plot', 'Bar Plot', 'Scatter Plot', 'Histogram']
+        )
+
         # Generate the plot based on the user's selections
-        if x_axis and y_axis:
-            fig = px.line(df, x=x_axis, y=y_axis, title=f'{y_axis} vs {x_axis}')
+        if x_axis and y_axis and plot_type:
+            if plot_type == 'Line Plot':
+                fig = px.line(df, x=x_axis, y=y_axis, title=f'{y_axis} vs {x_axis}')
+            elif plot_type == 'Bar Plot':
+                fig = px.bar(df, x=x_axis, y=y_axis, title=f'{y_axis} vs {x_axis}')
+            elif plot_type == 'Scatter Plot':
+                fig = px.scatter(df, x=x_axis, y=y_axis, title=f'{y_axis} vs {x_axis}')
+            elif plot_type == 'Histogram':
+                fig = px.histogram(df, x=x_axis, title=f'Histogram of {x_axis}')
+            
             st.plotly_chart(fig)
 
-# Call this visualization function if the appropriate columns exist in the uploaded CSV
-if 'csv_data' in st.session_state:
-    df = pd.DataFrame(st.session_state['csv_data'])
-    plot_user_selection(df)
+# Call this visualization function if the appropriate columns exist in the
