@@ -82,11 +82,11 @@ else:
         if isinstance(response_text, str):
             st.session_state.messages.append({"role": "assistant", "content": response_text})
 
-# Function to allow the user to select a plot type and columns
+# Function to allow the user to select a plot type, axis ranges, and color
 def plot_user_selection(df):
     # Ensure that the DataFrame has columns
     if df is not None and not df.empty:
-        st.write("### Select Plot Type and Columns for Plotting:")
+        st.write("### Select Plot Type and Customize Plot:")
         
         # Allow the user to select the x and y axis from available columns
         x_axis = st.selectbox('Choose column for X-axis', options=df.columns)
@@ -98,16 +98,39 @@ def plot_user_selection(df):
             ['Line Plot', 'Bar Plot', 'Scatter Plot', 'Histogram']
         )
 
+        # Allow the user to select color for the plot
+        plot_color = st.color_picker('Pick a color for the plot', '#00f900')
+
+        # Set axis range limits using sliders based on data range
+        x_range = st.slider(
+            f"Select range for {x_axis} (X-axis)", 
+            min_value=float(df[x_axis].min()), 
+            max_value=float(df[x_axis].max()), 
+            value=(float(df[x_axis].min()), float(df[x_axis].max()))
+        )
+        y_range = st.slider(
+            f"Select range for {y_axis} (Y-axis)", 
+            min_value=float(df[y_axis].min()), 
+            max_value=float(df[y_axis].max()), 
+            value=(float(df[y_axis].min()), float(df[y_axis].max()))
+        )
+
         # Generate the plot based on the user's selections
         if x_axis and y_axis and plot_type:
             if plot_type == 'Line Plot':
-                fig = px.line(df, x=x_axis, y=y_axis, title=f'{y_axis} vs {x_axis}')
+                fig = px.line(df, x=x_axis, y=y_axis, title=f'{y_axis} vs {x_axis}', color_discrete_sequence=[plot_color])
             elif plot_type == 'Bar Plot':
-                fig = px.bar(df, x=x_axis, y=y_axis, title=f'{y_axis} vs {x_axis}')
+                fig = px.bar(df, x=x_axis, y=y_axis, title=f'{y_axis} vs {x_axis}', color_discrete_sequence=[plot_color])
             elif plot_type == 'Scatter Plot':
-                fig = px.scatter(df, x=x_axis, y=y_axis, title=f'{y_axis} vs {x_axis}')
+                fig = px.scatter(df, x=x_axis, y=y_axis, title=f'{y_axis} vs {x_axis}', color_discrete_sequence=[plot_color])
             elif plot_type == 'Histogram':
-                fig = px.histogram(df, x=x_axis, title=f'Histogram of {x_axis}')
+                fig = px.histogram(df, x=x_axis, title=f'Histogram of {x_axis}', color_discrete_sequence=[plot_color])
+            
+            # Update axis ranges
+            fig.update_layout(
+                xaxis=dict(range=[x_range[0], x_range[1]]),
+                yaxis=dict(range=[y_range[0], y_range[1]])
+            )
             
             # Ensure the figure renders correctly
             if fig:
