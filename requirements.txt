@@ -12,3 +12,4 @@ wordcloud
 CleanText
 scikit-learn
 io
+matplotlib.pyplot
