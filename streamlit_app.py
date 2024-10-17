@@ -69,18 +69,7 @@ else:
 
         st.session_state.messages.append({"role": "assistant", "content": response_text})
 
-        # Check if the response contains code to generate a plot
-        try:
-            response_data = json.loads(response_text)
-            if 'code' in response_data and response_data['code']:
-                st.code(response_data['code'])
-                exec(response_data['code'])
-        except Exception as e:
-            st.error(f"Failed to parse response: {e}")
-
-        # If no code generated, simply show the response as text
-        if isinstance(response_text, str):
-            st.session_state.messages.append({"role": "assistant", "content": response_text})
+        
 
 # Function to allow the user to select a plot type, axis ranges, and color
 def plot_user_selection(df):
@@ -101,24 +90,6 @@ def plot_user_selection(df):
         # Allow the user to select color for the plot
         plot_color = st.color_picker('Pick a color for the plot', '#00f900')
 
-        # Calculate max values with some padding for better visualization
-        x_max = float(df[x_axis].max()) * 1.1  # Adding 10% padding
-        y_max = float(df[y_axis].max()) * 1.1  # Adding 10% padding
-
-        # Set axis range limits using sliders based on data range, starting from 0
-        x_range = st.slider(
-            f"Select range for {x_axis} (X-axis)", 
-            min_value=0.0,  # Starting from 0
-            max_value=x_max, 
-            value=(0.0, x_max)  # Default value starts at 0
-        )
-        y_range = st.slider(
-            f"Select range for {y_axis} (Y-axis)", 
-            min_value=0.0,  # Starting from 0
-            max_value=y_max, 
-            value=(0.0, y_max)  # Default value starts at 0
-        )
-
         # Generate the plot based on the user's selections
         if x_axis and y_axis and plot_type:
             if plot_type == 'Line Plot':
@@ -130,7 +101,7 @@ def plot_user_selection(df):
             elif plot_type == 'Histogram':
                 fig = px.histogram(df, x=x_axis, title=f'Histogram of {x_axis}', color_discrete_sequence=[plot_color])
             
-            # Update axis ranges to fit the selected values
+            # Update axis ranges
             fig.update_layout(
                 xaxis=dict(range=[x_range[0], x_range[1]]),
                 yaxis=dict(range=[y_range[0], y_range[1]])
@@ -146,4 +117,3 @@ def plot_user_selection(df):
 if 'csv_data' in st.session_state:
     df = pd.DataFrame(st.session_state['csv_data'])
     plot_user_selection(df)
-
