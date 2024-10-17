@@ -101,10 +101,6 @@ def plot_user_selection(df):
             elif plot_type == 'Histogram':
                 fig = px.histogram(df, x=x_axis, title=f'Histogram of {x_axis}', color_discrete_sequence=[plot_color])
             
-            # Update axis ranges
-            fig.update_layout(
-                xaxis=dict(range=[x_range[0], x_range[1]]),
-                yaxis=dict(range=[y_range[0], y_range[1]])
             )
             
             # Ensure the figure renders correctly
