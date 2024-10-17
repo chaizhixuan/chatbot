@@ -28,7 +28,7 @@ else:
         st.write(df.head())  # Display the first few rows of the file
 
         # Store the DataFrame in the session state for later use
-        st.session_state["csv_data"] = df
+        st.session_state["csv_data"] = df  # Correctly store the DataFrame
 
     # Create a session state variable to store chat messages
     if "messages" not in st.session_state:
@@ -78,7 +78,7 @@ def plot_user_selection(df):
         
         # Allow the user to select the x and y axis from available columns
         x_axis = st.selectbox('Choose column for X-axis', options=df.columns)
-        y_axis = st.selectbox('Choose column for Y-axis', options[df.columns])
+        y_axis = st.selectbox('Choose column for Y-axis', options=df.columns)
 
         # Ensure selected columns are numeric
         if pd.api.types.is_numeric_dtype(df[x_axis]) and pd.api.types.is_numeric_dtype(df[y_axis]):
@@ -137,4 +137,3 @@ def plot_user_selection(df):
 if 'csv_data' in st.session_state:
     df = pd.DataFrame(st.session_state['csv_data'])
     plot_user_selection(df)
-
