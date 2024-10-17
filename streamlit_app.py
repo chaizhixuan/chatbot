@@ -134,30 +134,4 @@ if 'csv_data' in st.session_state:
     df = pd.DataFrame(st.session_state['csv_data'])
     plot_user_selection(df)
 
-# Function to create a pivot table
-def create_pivot_table(df):
-    st.write("### Create a Pivot Table:")
-    
-    # Allow the user to select index, columns, and values for the pivot table
-    pivot_index = st.selectbox('Select Index for Pivot Table', df.columns)
-    pivot_columns = st.selectbox('Select Columns for Pivot Table', df.columns)
-    pivot_values = st.selectbox('Select Values for Pivot Table', df.columns)
-    
-    # Choose aggregation function
-    agg_func = st.selectbox('Choose Aggregation Function', ['mean', 'sum', 'count', 'min', 'max'])
-    
-    # Create the pivot table
-    pivot_table = pd.pivot_table(df, index=pivot_index, columns=pivot_columns, values=pivot_values, aggfunc=agg_func)
-    
-    st.write("### Pivot Table:")
-    st.dataframe(pivot_table)
 
-# Call this visualization function if the appropriate columns exist in the uploaded CSV
-if 'csv_data' in st.session_state:
-    df = pd.DataFrame(st.session_state['csv_data'])
-    
-    # Plot data visualization first
-    plot_user_selection(df)
-    
-    # After plotting, show the option to create a pivot table
-    create_pivot_table(df)
