@@ -101,7 +101,6 @@ def plot_user_selection(df):
             elif plot_type == 'Histogram':
                 fig = px.histogram(df, x=x_axis, title=f'Histogram of {x_axis}', color_discrete_sequence=[plot_color])
             
-            )
             
             # Ensure the figure renders correctly
             if fig:
