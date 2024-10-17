@@ -133,5 +133,3 @@ def plot_user_selection(df):
 if 'csv_data' in st.session_state:
     df = pd.DataFrame(st.session_state['csv_data'])
     plot_user_selection(df)
-
-
